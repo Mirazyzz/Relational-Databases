@@ -3,7 +3,7 @@ CREATE OR REPLACE PROCEDURE add_position
  (p_title IN Position.Position_Name%TYPE)
   
 AS 
-existing_position EXCEPTION; 
+existing_position EXCEPTION;
 count_position NUMBER; -- to count if there exists any specialization with such a description
 
 BEGIN
@@ -26,7 +26,7 @@ execute add_position('Lorist');
 execute add_spec('Dentist'); ---exception
 */
 
-/* Find doctors by given position */
+/* Find doctors by given position and shows doctors who have the highest and the lowest number of apopintments under this position*/
 
 CREATE OR REPLACE PROCEDURE Find_Doctor
     (p_title IN Position.Position_Name%TYPE)
@@ -86,12 +86,12 @@ BEGIN
                                     WHERE Id_Employee = Employee_Id AND Id_Position = Position_id AND Id_Employee = Doctor_Id AND Position_Name = p_title
                                     GROUP BY First_Name);
 
-           DBMS_OUTPUT.PUT_LINE ('Doctor |' || chr(15) || 'Max_Visit|' || chr(15) || ' Min_Visit');
+           DBMS_OUTPUT.PUT_LINE ('Doctor |' || '  ' || 'Highest appointments |' || '  ' || ' Lowest appointments');
            DBMS_OUTPUT.PUT_LINE (doctor_max || '       ' || max_visit || '         ');
            DBMS_OUTPUT.PUT_LINE (doctor_min || '                 ' || min_visit);           
            DBMS_OUTPUT.PUT_LINE ('----------------------------------------------------------');
            
-           DBMS_OUTPUT.PUT_LINE('List of other doctors having this specialization :');
+           DBMS_OUTPUT.PUT_LINE('List of all doctors having this specialization');
     
     OPEN doc;
     LOOP
@@ -109,5 +109,8 @@ END;
 
 SET SERVEROUTPUT ON;
 execute find_doctor('Dentist');
-execute find_doctor('Traumotologist');   ---- exception
+execute find_doctor('Traumotologist'); -- with exception
 */
+
+
+/* Procedure that adds new appointment for a given patient and doctor and given diagnosis */
