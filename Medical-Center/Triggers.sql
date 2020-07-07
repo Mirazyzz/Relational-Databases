@@ -84,3 +84,35 @@ SELECT * FROM POsition;
 INSERT INTO Position(Position_Name) VALUES ('New position');
 DELETE FROM Position WHERE Position_Name = 'New position';
 */
+
+
+/* After adding assinging Position to an Employee show how many doctors there are under the specialization of the assigned Employee */
+
+CREATE OR REPLACE TRIGGER assign_position
+BEFORE INSERT ON Employee_Position
+    FOR EACH ROW
+DECLARE
+    count_employees NUMBER;
+    position_title Position.Position_Name%TYPE;
+BEGIN
+    SELECT COUNT(Employee_Id) + 1 INTO count_employees
+    FROM Employee_Position
+    WHERE Position_Id = :new.Position_Id
+    GROUP BY Position_Id;
+    
+    SELECT Position_Name INTO position_title
+    FROM Position
+    WHERE Id_Position = (SELECT DISTINCT Position_Id
+                         FROM Employee_Position
+                         WHERE Position_Id = :new.Position_Id);
+    
+    DBMS_OUTPUT.PUT_LINE('There are ' || count_employees || ' employees are currently working under position ' || position_title);
+END;
+commit;
+
+/* test
+SET SERVERTOUTPUT ON;
+INSERT INTO Employee_Position (Employee_Id, Position_Id) VALUES (1, 3);
+ROLLBACK;
+*/
+
