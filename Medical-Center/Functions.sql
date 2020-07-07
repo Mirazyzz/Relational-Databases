@@ -99,3 +99,24 @@ END;
 SELECT DISTINCT get_doctors_best(8) as "Doctor's best Patient" FROM Appointment;
 SELECT DISTINCT get_doctors_best(0) as "Doctor's best Patient" FROM Appointment; --- with exception
 */
+
+
+/* Show amount of money given treatment brought in a given month */
+
+CREATE OR REPLACE FUNCTION income_treatment(id_t Treatment.Id_Treatment%TYPE, a_date Appointment.Treatment_Date%TYPE)
+    RETURN NUMBER
+IS
+    income NUMBER;
+BEGIN
+    SELECT SUM(NVL(Price, 0)) INTO income
+    FROM Appointment_Treatment
+    INNER JOIN Appointment ON Appointment_Id = Id_Appointment
+    WHERE Treatment_Id = id_t AND EXTRACT(MONTH FROM Treatment_Date) = EXTRACT(MONTH FROM a_date);
+    
+    RETURN income;
+END;
+    
+/* test
+select distinct income_treatment(2, '01-APR-2020') AS "Income for April" FROM appointment;
+
+*/
