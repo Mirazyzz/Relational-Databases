@@ -113,4 +113,98 @@ execute find_doctor('Traumotologist'); -- with exception
 */
 
 
-/* Procedure that adds new appointment for a given patient and doctor and given diagnosis */
+/* Procedure that makes new appointment and assigns to a given treatment */
+
+CREATE OR REPLACE PROCEDURE new_appointment(id_p Appointment.Patient_Id%TYPE, id_d Appointment.Doctor_Id%TYPE,
+                                            id_di Appointment.Diagnosis_Id%TYPE, t_date Appointment.Treatment_Date%TYPE,
+                                            a_price Appointment.Price%TYPE, t_title Treatment.Treatment_Type%TYPE)
+AS
+doctor_not_free EXCEPTION; -- check if doctor does not have an appointment in a given time
+no_patient EXCEPTION; -- check if there is a patient by given id
+no_doctor EXCEPTION; -- check if there is  a doctor by given id
+no_treatment EXCEPTION; -- check if there is a treatment by given type
+
+patient_count NUMBER;
+doctor_count NUMBER;
+treatment_count NUMBER;
+
+doctorId Appointment.Doctor_Id%TYPE;           -- to pass to function
+treatmentId Treatment.Id_Treatment%TYPE;       -- to make new appointment treatment
+appointmentId Appointment.Id_Appointment%TYPE; -- to choose the recent added appointment
+
+doctor_date Appointment.Treatment_Date%TYPE; -- to show time when doctor is free
+schedule_start Schedule.Time_Start%TYPE;     -- for time from which doctor is free
+schedule_end Schedule.Time_End%TYPE;         -- for time until which doctor is free
+
+    CURSOR doctor_appointments IS SELECT Treatment_Date
+    FROM Appointment
+    WHERE Doctor_Id = id_d AND EXTRACT(MONTH FROM Treatment_Date) = EXTRACT(MONTH FROM t_date)
+                           AND EXTRACT(DAY FROM Treatment_Date) = EXTRACT(DAY FROM t_date); -- all appointments of doctor in given day
+BEGIN
+    
+    SELECT COUNT(Id_Patient) INTO patient_count FROM Patient WHERE Id_Patient = id_p;
+    SELECT COUNT(Id_Employee) INTO doctor_count FROM Employee WHERE Id_Employee = id_d;
+    SELECT COUNT(Id_Treatment) INTO treatment_count FROM Treatment WHERE Treatment_Type = t_title;
+
+    -- check if there is a patient
+    IF patient_count = 0 THEN
+        RAISE no_patient;
+    -- check if there is a doctor
+    ELSIF doctor_count = 0 THEN
+        RAISE no_doctor;
+    -- check if there is a given treatment type
+    ELSIF treatment_count = 0 THEN
+        RAISE no_treatment;
+    -- check if doctor does not have appointments in a given date
+    ELSIF is_free(id_d, t_date) = 'busy' THEN
+        RAISE doctor_not_free;
+    ELSE
+        -- make a new appointment
+        INSERT INTO Appointment (Patient_Id, Doctor_Id, Diagnosis_Id, Treatment_Date, Price) 
+        VALUES (id_p, id_d, id_di, t_date, a_price);
+        
+        SELECT DISTINCT Id_Treatment INTO treatmentId FROM Treatment WHERE Treatment_Type = t_title;
+        SELECT MAX(Id_Appointment) INTO appointmentId FROM Appointment;
+        INSERT INTO Appointment_Treatment (Appointment_Id, Treatment_Id)
+        VALUES (appointmentId, treatmentId);
+        
+        DBMS_OUTPUT.PUT_LINE('New appointment was made and assigned to treatment ' || t_title);
+    END IF;
+    
+    EXCEPTION
+        WHEN doctor_not_free THEN
+            DBMS_OUTPUT.PUT_LINE('Doctor is not free in a given date, please, choose another time!');
+            
+            SELECT Time_Start INTO schedule_start
+            FROM Schedule
+            INNER JOIN Employee_Schedule ON Schedule_Id = Id_Schedule
+            WHERE Employee_Id = id_d
+            FETCH FIRST ROW ONLY;
+            
+            SELECT Time_End INTO schedule_end
+            FROM Schedule
+            INNER JOIN Employee_Schedule ON Schedule_Id = Id_Schedule
+            WHERE Employee_Id = id_d
+            FETCH FIRST ROW ONLY;
+            OPEN doctor_appointments;
+            LOOP
+            FETCH doctor_appointments INTO doctor_date;
+                EXIT WHEN doctor_appointments%NOTFOUND;
+                DBMS_OUTPUT.PUT_LINE('You can choose time from ' || schedule_start || ' - ' || TO_CHAR(doctor_date, 'HH24') || ':' || TO_CHAR(doctor_date, 'MI') || ' and ' || TO_CHAR(doctor_date, 'HH24') || ':' || TO_CHAR(doctor_date, 'MI') || ' - ' || schedule_end);
+            END LOOP;
+            CLOSE doctor_appointments;
+        WHEN no_patient THEN
+            DBMS_OUTPUT.PUT_LINE('There is no patient can be found by given id!');
+        WHEN no_doctor THEN
+            DBMS_OUTPUT.PUT_LINE('There is no doctor can be found by given id!');
+        WHEN no_treatment THEN
+            DBMS_OUTPUT.PUT_LINE('Currently, the clinic does not provide given treatment');
+END;
+
+/* test
+SET SERVEROUTPUT ON;
+execute new_appointment(4, 1, 8, '09-APR-20 02.40', 800, 'Consultation');
+execute new_appointment(4, 100, 8, '09-APR-20 02.40', 800, 'Consultation'); -- no doctor exception
+execute new_appointment(400, 1, 8, '09-APR-20 02.40', 800, 'Consultation'); -- no patient exception
+execute new_appointment(4, 1, 8, '09-APR-20 02.40', 800, 'NOTREATMENT');-- no treatment exception
+*/
