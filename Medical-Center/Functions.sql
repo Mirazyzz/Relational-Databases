@@ -118,5 +118,29 @@ END;
     
 /* test
 select distinct income_treatment(2, '01-APR-2020') AS "Income for April" FROM appointment;
+*/
 
+
+------------------------Check if patient is not having the same visit----------------
+
+CREATE OR REPLACE FUNCTION is_same (patientID Appointment.Patient_Id%TYPE, doctorID Appointment.Doctor_Id%TYPE, 
+                                    diagnosisId Appointment.Diagnosis_Id%TYPE, t_date Appointment.Treatment_Date%TYPE)
+    RETURN VARCHAR IS
+        if_patient VARCHAR(4) := 'ok';
+        x NUMBER;
+    BEGIN
+        select count(id_appointment) into x
+        from appointment 
+        where Doctor_Id = doctorId and Patient_Id = patientId and Diagnosis_Id = diagnosisId and Treatment_Date = t_date;
+            IF x >= 1 THEN
+                if_patient := 'not ok';
+            ELSE
+                if_patient := 'ok';
+            END IF;
+            RETURN if_patient;
+END;
+
+/* test
+select * from appointment;
+select distinct if_patient(1, 1, '04.12.12') as "Patient" from visit;
 */
