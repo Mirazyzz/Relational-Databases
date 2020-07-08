@@ -124,9 +124,9 @@ no_patient EXCEPTION; -- check if there is a patient by given id
 no_doctor EXCEPTION; -- check if there is  a doctor by given id
 no_treatment EXCEPTION; -- check if there is a treatment by given type
 
-patient_count NUMBER;
-doctor_count NUMBER;
-treatment_count NUMBER;
+patient_count NUMBER;	-- for no_patient exception
+doctor_count NUMBER;	-- for no_doctor exception
+treatment_count NUMBER;	-- for no_treatment exception
 
 doctorId Appointment.Doctor_Id%TYPE;           -- to pass to function
 treatmentId Treatment.Id_Treatment%TYPE;       -- to make new appointment treatment
