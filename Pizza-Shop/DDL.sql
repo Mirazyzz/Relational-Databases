@@ -5,41 +5,41 @@ DROP TABLE Pizza.SavedOrder;
 DROP TABLE Pizza.SavedItem;
 DROP TABLE Pizza.Account;
 DROP TABLE Pizza.OrderDetails;
+DROP TABLE Pizza.OrderItem;
+DROP TABLE Pizza."Order";
 DROP TABLE Pizza.OrderType;
 DROP TABLE Pizza.PaymentType;
-DROP TABLE Pizza."Order";
 DROP TABLE Pizza."Address";
 DROP TABLE Pizza.Customer;
 DROP TABLE Pizza.Employee;
 DROP TABLE Pizza.Position;
-DROP TABLE Pizza.OrderItem;
 drop table Pizza.MenuItem;
 DROP TABLE Pizza.Menu;
 DROP TABLE Pizza.Item;
-DROP TABLE Pizza.ItemType;
+DROP TABLE Pizza.Category;
 
-CREATE TABLE Pizza.ItemType (
-  Id_ItemType INT NOT NULL IDENTITY,
-  TypeTitle NVARCHAR(100) ,
-  PRIMARY KEY (Id_ItemType)
+CREATE TABLE Pizza.Category (
+  Id_Category INT NOT NULL IDENTITY,
+  CategoryTitle NVARCHAR(100) ,
+  PRIMARY KEY (Id_Category)
 );
 
 
 CREATE TABLE Pizza.Item (
   Id_Item INT NOT NULL IDENTITY,
-  ItemType_Id INT NOT NULL,
+  Category_Id INT NOT NULL,
   ItemTitle NVARCHAR(100),
-  Price SMALLMONEY,
+  ItemPrice SMALLMONEY,
   Description NVARCHAR(500),
   PRIMARY KEY (Id_Item),
-  FOREIGN KEY (ItemType_Id) REFERENCES Pizza.ItemType (Id_ItemType)
+  FOREIGN KEY (Category_Id) REFERENCES Pizza.Category (Id_Category)
 );
 
 
 CREATE TABLE Pizza.Menu (
   Id_Menu INT NOT NULL IDENTITY,
   MenuTitle NVARCHAR(100),
-  Price SMALLMONEY,
+  MenuPrice SMALLMONEY,
   PRIMARY KEY (Id_Menu),
 );
 
@@ -51,36 +51,6 @@ CREATE TABLE Pizza.MenuItem (
 	PRIMARY KEY (Id_MenuItem),
 	FOREIGN KEY (Menu_Id) REFERENCES Pizza.Menu (Id_Menu),
 	FOREIGN KEY (Item_Id) REFERENCES Pizza.Item (Id_Item)
-);
-
-CREATE TABLE Pizza.OrderItem (
-  Id_OrderItem INT NOT NULL IDENTITY,
-  Item_Id INT,
-  Menu_Id INT,
-  Quantity SMALLINT,
-  PRIMARY KEY (Id_OrderItem),
-  FOREIGN KEY (Item_Id) REFERENCES Pizza.Item (Id_Item),
-  FOREIGN KEY (Menu_Id) REFERENCES Pizza.Menu (Id_Menu)
-);
-
-
-CREATE TABLE Pizza.Position (
-  Id_Position INT NOT NULL IDENTITY,
-  Position_Title NVARCHAR(50) NOT NULL,
-  Salary SMALLMONEY NOT NULL,
-  PRIMARY KEY (Id_Position)
-);
-
-
-CREATE TABLE Pizza.Employee (
-  Id_Employee INT NOT NULL IDENTITY,
-  Position_Id INT NOT NULL,
-  FirstName NVARCHAR(100),
-  LastName NVARCHAR(100),
-  Phone NVARCHAR(20) NOT NULL,
-  Bonus SMALLMONEY,
-  PRIMARY KEY (Id_Employee),
-  FOREIGN KEY (Position_Id) REFERENCES Pizza.Position (Id_Position)
 );
 
 
@@ -105,11 +75,35 @@ CREATE TABLE Pizza."Address" (
 );
 
 
+CREATE TABLE Pizza."Order" (
+  Id_Order INT NOT NULL IDENTITY,
+  Customer_Id INT NOT NULL,
+  OrderDate DATETIME DEFAULT GETDATE(),
+  TotalPrice SMALLINT,
+  Discount SMALLINT,
+  PRIMARY KEY (Id_Order),
+  FOREIGN KEY (Customer_Id) REFERENCES Pizza.Customer (Id_Customer)
+);
+
+CREATE TABLE Pizza.OrderItem (
+  Id_OrderItem INT NOT NULL IDENTITY,
+  Item_Id INT,
+  Menu_Id INT,
+  Order_Id INT,
+  Quantity SMALLINT,
+  PRIMARY KEY (Id_OrderItem),
+  FOREIGN KEY (Item_Id) REFERENCES Pizza.Item (Id_Item),
+  FOREIGN KEY (Menu_Id) REFERENCES Pizza.Menu (Id_Menu),
+  FOREIGN KEY (Order_Id) REFERENCES Pizza."Order" (Id_Order)
+);
+
+
 CREATE TABLE Pizza.PaymentType (
   Id_PaymentType INT NOT NULL IDENTITY,
   PaymentType_Name NVARCHAR(100),
   PRIMARY KEY (Id_PaymentType)
 );
+
 
 CREATE TABLE Pizza.OrderType (
   Id_OrderType INT NOT NULL IDENTITY,
@@ -117,17 +111,26 @@ CREATE TABLE Pizza.OrderType (
   PRIMARY KEY (Id_OrderType)
 );
 
-CREATE TABLE Pizza."Order" (
-  Id_Order INT NOT NULL IDENTITY,
-  OrderItem_Id INT NOT NULL,
-  Customer_Id INT NOT NULL,
-  TotalPrice SMALLINT,
-  Discount SMALLINT,
-  PRIMARY KEY (Id_Order),
-  FOREIGN KEY (OrderItem_Id) REFERENCES Pizza.OrderItem (Id_OrderItem),
-  FOREIGN KEY (Customer_Id) REFERENCES Pizza.Customer (Id_Customer)
 
+CREATE TABLE Pizza.Position (
+  Id_Position INT NOT NULL IDENTITY,
+  Position_Title NVARCHAR(50) NOT NULL,
+  Salary SMALLMONEY NOT NULL,
+  PRIMARY KEY (Id_Position)
 );
+
+
+CREATE TABLE Pizza.Employee (
+  Id_Employee INT NOT NULL IDENTITY,
+  Position_Id INT NOT NULL,
+  FirstName NVARCHAR(100),
+  LastName NVARCHAR(100),
+  Phone NVARCHAR(20) NOT NULL,
+  Bonus SMALLMONEY,
+  PRIMARY KEY (Id_Employee),
+  FOREIGN KEY (Position_Id) REFERENCES Pizza.Position (Id_Position)
+);
+
 
 CREATE TABLE Pizza.OrderDetails (
   Id_OrderDetails INT NOT NULL IDENTITY,
@@ -179,4 +182,3 @@ CREATE TABLE Pizza.OrderHistory (
 	FOREIGN KEY (Account_Id) REFERENCES Pizza.Account (Id_Account),
 	FOREIGN KEY (Order_Id) REFERENCES Pizza."Order" (Id_Order)
 );
-	
