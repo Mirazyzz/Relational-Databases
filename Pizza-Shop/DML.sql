@@ -1,5 +1,3 @@
-USE projects;
-
 ---- Category ----
 INSERT INTO Pizza.Category (CategoryTitle) VALUES ('Cold Drinks');
 INSERT INTO Pizza.Category (CategoryTitle) VALUES ('Hot Drinks');
