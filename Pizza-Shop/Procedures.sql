@@ -1,5 +1,5 @@
 /* Make a new order */
-CREATE PROCEDURE Pizza.NewItemOrder
+ALTER PROCEDURE Pizza.NewItemOrder
 	(
 		@customerId INT,
 		@itemId INT = 0,
@@ -42,8 +42,6 @@ AS
 			
 		INSERT INTO Pizza.OrderDetails (Order_Id, PaymentType_Id, OrderType_Id, Deliver_Id)
 		VALUES (@orderId, @paymentTypeId, @orderTypeId, @deliver_Id);
-		
-
 END;
 
 /* test

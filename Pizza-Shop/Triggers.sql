@@ -3,8 +3,7 @@
 	if total price is more than 20$ - discount 15%
 	if total price is more than 30$ - disocunt 20%
 */
-insert into Pizza.OrderItem (Item_Id, Order_Id, Quantity) values (1, 1, 4);
-select * from Pizza."Order";
+
 CREATE TRIGGER TRG_CalcTotalPrice ON Pizza.OrderItem
 	AFTER INSERT, UPDATE
 AS
@@ -16,9 +15,10 @@ AS
 
 		IF EXISTS (SELECT * FROM inserted)
 			BEGIN
+				PRINT 'TRIGGER';
+				PRINT 'Trigger print: orderId - ' + CAST(@idorder as nvarchar(10));
 				SELECT @IdOrder = Order_Id FROM INSERTED;
 				SET @sum = Pizza.CalculateTotal(@IdOrder);	-- calculate total price by passing id of order to function
-				PRINT @sum;
 				SET @discount =
 				CASE
 					WHEN @sum > 15 THEN @sum * 0.1

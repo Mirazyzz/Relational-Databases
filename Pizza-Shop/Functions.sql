@@ -1,34 +1,37 @@
-CREATE FUNCTION Pizza.CalculateTotal
+ALTER FUNCTION Pizza.CalculateTotal
 	(
 		@orderId INT
 	)
 RETURNS SMALLMONEY
 AS
 BEGIN
-	DECLARE @sum SMALLMONEY;
+	DECLARE @sum SMALLMONEY = 0;
 	
-	SELECT @sum = SUM(ItemPrice)
-	FROM Pizza.Item
- 	INNER JOIN Pizza.OrderItem ON Item_Id = Id_Item
-	WHERE Order_Id = @orderId;
+	IF EXISTS (SELECT Item_Id FROM Pizza.OrderItem WHERE Item_Id = @orderId)
+		SELECT @sum = SUM(ItemPrice)
+		FROM Pizza.Item
+ 		INNER JOIN Pizza.OrderItem ON Item_Id = Id_Item
+		WHERE Order_Id = @orderId;
 
-	SELECT @sum += SUM(MenuPrice)
-	FROM Pizza.Menu
-	INNER JOIN Pizza.OrderItem ON Menu_Id = Id_Menu
-	WHERE Order_Id = @orderId;
+	IF EXISTS (SELECT Menu_Id FROM Pizza.OrderItem WHERE Order_Id = @orderId)
+		SELECT @sum += SUM(MenuPrice)
+		FROM Pizza.Menu
+		INNER JOIN Pizza.OrderItem ON Menu_Id = Id_Menu
+		WHERE Order_Id = @orderId;
 
 	RETURN @sum;
 END;
 
-
+select * from Pizza.OrderItem where order_id = 20;
+select * from Pizza.OrderItem where order_id = 33;
 /* test
-select Pizza.calculateTotal(2) as 'Total price for order 2';
+select Pizza.calculateTotal(20) as 'Total price for order 2';
 */
 
 
 /* Function returning description of order */
 
-ALTER FUNCTION Pizza.OrderDescription
+CREATE FUNCTION Pizza.OrderDescription
 	(
 		@orderId INT,
 		@customerId INT,
