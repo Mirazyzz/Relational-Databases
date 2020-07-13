@@ -119,11 +119,10 @@ CREATE TABLE Pizza.OrderType (
   PRIMARY KEY (Id_OrderType)
 );
 
-
 CREATE TABLE Pizza.Position (
   Id_Position INT NOT NULL IDENTITY,
   Position_Title NVARCHAR(50) NOT NULL,
-  Salary SMALLMONEY NOT NULL,
+  Salary MONEY NOT NULL,
   PRIMARY KEY (Id_Position)
 );
 
@@ -134,7 +133,7 @@ CREATE TABLE Pizza.Employee (
   FirstName NVARCHAR(100),
   LastName NVARCHAR(100),
   Phone NVARCHAR(20) NOT NULL,
-  Bonus SMALLMONEY,
+  Bonus MONEY,
   PRIMARY KEY (Id_Employee),
   FOREIGN KEY (Position_Id) REFERENCES Pizza.Position (Id_Position)
 );
