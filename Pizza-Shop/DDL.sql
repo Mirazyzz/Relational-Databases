@@ -161,7 +161,7 @@ CREATE TABLE Pizza.Account (
   Email NVARCHAR (50) NOT NULL,
   Password NVARCHAR (50) NOT NULL,
   PRIMARY KEY (Id_Account),
-  FOREIGN KEY (Customer_Id) REFERENCES Pizza.Customer (Id_Customer),
+  FOREIGN KEY (Customer_Id) REFERENCES Pizza.Customer (Id_Customer)
 );
 
 CREATE TABLE Pizza.SavedOrder (
