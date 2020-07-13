@@ -1,4 +1,4 @@
-/* Trigger which calculates total price of all items in order and discount 
+/* Trigger which calculates total price of all items the given Order and discount 
 	if total price is more than 15$ - discount 10%
 	if total price is more than 20$ - discount 15%
 	if total price is more than 30$ - disocunt 20%
@@ -131,6 +131,7 @@ AS
 		DECLARE @customerId INT;
 		DECLARE @paymentTypeId INT;
 
+		/* check if ddl action is insert or update */
 		IF EXISTS (SELECT * FROM inserted)
 			BEGIN
 				SELECT @deliverId = Deliver_Id FROM inserted;
