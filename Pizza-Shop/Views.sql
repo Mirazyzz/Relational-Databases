@@ -74,7 +74,7 @@ FROM Pizza.CustomerSavedItem;
 GO
 CREATE VIEW Pizza.CustomerDetails
 AS
-SELECT FirstName, LastName, Phone, Street, Appartment, Flat, Pincode
+SELECT Id_Customer, FirstName, LastName, Phone, Street, Appartment, Flat, Pincode
 FROM Pizza.Customer c
 INNER JOIN Pizza.Account a ON a.Customer_Id = c.Id_Customer
 INNER JOIN Pizza."Address" ad ON ad.Customer_Id = c.Id_Customer;

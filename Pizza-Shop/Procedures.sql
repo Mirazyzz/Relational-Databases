@@ -1,6 +1,4 @@
-EXECUTE Pizza.NewItemOrder 2, 2, 4, 1, 1, 1;
-SELECT * FROM PIZZA."Order";
-CREATE PROCEDURE Pizza.NewItemOrder
+ALTER PROCEDURE Pizza.NewItemOrder
 	(
 		@customerId INT,
 		@itemId INT = 0,
@@ -14,29 +12,24 @@ AS
 		
 		DECLARE @orderId INT;
 
-		IF NOT EXISTS (SELECT Id_Customer FROM Pizza.Customer)
+		IF NOT EXISTS (SELECT Id_Customer FROM Pizza.Customer WHERE Id_Customer = @customerId)
 			BEGIN
-				RAISERROR('There is no customer with given id', 1, 1);
+				RAISERROR('There is no customer with given id!', 16, 0);
 				RETURN;
 			END;
-		IF NOT EXISTS (SELECT Id_Item FROM Pizza.Item)
+		IF NOT EXISTS (SELECT Id_Item FROM Pizza.Item WHERE Id_Item = @itemId)
 			BEGIN
-				RAISERROR('There is no item with given id', 1, 2);
+				RAISERROR('There is no item with given id!', 16, 0);
 				RETURN;
 			END;
-		IF NOT EXISTS (SELECT Id_Menu FROM Pizza.Menu)
+		IF NOT EXISTS (SELECT Id_PaymentType FROM Pizza.PaymentType WHERE Id_PaymentType = @paymentTypeId)
 			BEGIN
-				RAISERROR('There is no menu with given id', 1, 1);
+				RAISERROR('There is no type of paymnet with given id!', 16, 0);
 				RETURN;
 			END;
-		IF NOT EXISTS (SELECT Id_PaymentType FROM Pizza.PaymentType)
+		IF NOT EXISTS (SELECT Id_OrderType FROM Pizza.OrderType WHERE Id_OrderType = @orderTypeId)
 			BEGIN
-				RAISERROR('There is no type of paymnet with given id', 1, 1);
-				RETURN;
-			END;
-		IF NOT EXISTS (SELECT Id_OrderType FROM Pizza.OrderType)
-			BEGIN
-				RAISERROR('There is no service of delivery with given id', 1, 3);
+				RAISERROR('There is no service of delivery with given id!', 16, 0);
 				RETURN;
 			END;
 
@@ -50,4 +43,9 @@ AS
 		VALUES (@orderId, @paymentTypeId, @orderTypeId, @deliver_Id);
 		
 END;
-	
+
+
+/* test
+EXECUTE Pizza.NewItemOrder 5, 25, 44, 1, 1, 1;
+EXECUTE Pizza.NewItemOrder 50, 25, 44, 1, 1, 1;
+*/

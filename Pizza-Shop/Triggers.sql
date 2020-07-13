@@ -3,7 +3,8 @@
 	if total price is more than 20$ - discount 15%
 	if total price is more than 30$ - disocunt 20%
 */
-
+insert into Pizza.OrderItem (Item_Id, Order_Id, Quantity) values (1, 1, 4);
+select * from Pizza."Order";
 CREATE TRIGGER TRG_CalcTotalPrice ON Pizza.OrderItem
 	AFTER INSERT, UPDATE
 AS
@@ -17,6 +18,7 @@ AS
 			BEGIN
 				SELECT @IdOrder = Order_Id FROM INSERTED;
 				SET @sum = Pizza.CalculateTotal(@IdOrder);	-- calculate total price by passing id of order to function
+				PRINT @sum;
 				SET @discount =
 				CASE
 					WHEN @sum > 15 THEN @sum * 0.1
@@ -24,6 +26,7 @@ AS
 					WHEN @sum > 30 THEN @sum * 0.20
 					ELSE 0
 				END;
+				PRINT @IdOrder;
 				UPDATE Pizza."Order" SET TotalPrice = @sum, Discount = @discount WHERE Id_Order = @IdOrder;
 			END;
 		ELSE
@@ -112,24 +115,42 @@ AS
 END;
 
 
-/* Trigger to give a bonus for delivers if they have delivered certain amount of orders monthly*/
+/* Trigger to give a bonus for delivers if they have delivered certain amount of orders monthly and set the description*/
 
 CREATE TRIGGER TRG_DeliverBonus ON Pizza.OrderDetails
 	FOR INSERT, UPDATE
 AS
 	BEGIN
 		
+		DECLARE @idOrderDetails INT;
 		DECLARE @bonus SMALLMONEY;	-- to give certain bonus
 		DECLARE @deliverId INT; -- to choose deliver which was assigned to order
 		DECLARE @ordersCount INT;	-- to count number of his orders in current month
+		DECLARE @orderDescription NVARCHAR(500);
+		DECLARE @orderId INT;
+		DECLARE @customerId INT;
+		DECLARE @paymentTypeId INT;
 
 		IF EXISTS (SELECT * FROM inserted)
 			BEGIN
 				SELECT @deliverId = Deliver_Id FROM inserted;
+				SELECT @orderId = Order_Id FROM inserted;
+				SELECT @paymentTypeId = paymentType_Id FROM inserted;
+				SELECT @customerId = Customer_Id FROM Pizza."Order" WHERE Id_Order = @orderId;
+				SELECT @idOrderDetails = Id_OrderDetails FROM inserted;
+
+				SET @orderDescription = Pizza.OrderDescription(@orderId, @customerId, @paymentTypeId);
 			END;
 		ELSE
 			BEGIN
 				SELECT @deliverId = Deliver_Id FROM updated;
+				SELECT @deliverId = Deliver_Id FROM updated;
+				SELECT @orderId = Order_Id FROM updated;
+				SELECT @paymentTypeId = paymentType_Id FROM updated;
+				SELECT @customerId = Customer_Id FROM Pizza."Order" WHERE Id_Order = @orderId;
+				SELECT @idOrderDetails = Id_OrderDetails FROM updated;
+
+				SET @orderDescription = Pizza.OrderDescription(@orderId, @customerId, @paymentTypeId);
 			END;
 
 		IF @deliverId IS NOT NULL
@@ -153,5 +174,9 @@ AS
 			UPDATE Pizza.Employee
 			SET Bonus = @bonus
 			WHERE Id_Employee = @deliverId;
+
+			UPDATE Pizza.OrderDetails
+			SET OrderDescription = @orderDescription
+			WHERE Id_OrderDetails = @idOrderDetails;
 		END;
 END;
