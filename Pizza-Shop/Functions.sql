@@ -57,38 +57,6 @@ BEGIN
 								INNER JOIN Pizza.OrderItem ON Menu_Id = Id_Menu
 								WHERE Order_Id = @orderId;
 
-	SET @description = 'Order description: ';
-	
-	SELECT @totalPrice = TotalPrice
-						 FROM Pizza."Order"
-						 WHERE Id_Order = @orderId;
-
-	SELECT @discount = Discount
-					   FROM Pizza."Order"
-					   WHERE Id_Order = @orderId;
-					   
-	SELECT @address = Street
-						FROM Pizza."Address"
-						WHERE Customer_Id = @customerId;
-	
-	SELECT @paymentTitle = PaymentType_Name
-							FROM Pizza.PaymentType
-							WHERE Id_PaymentType = @paymentTypeId;
-	
-	SELECT @orderDate = OrderDate
-						FROM Pizza."Order"
-						WHERE Id_Order = @orderId;
-
-
-	RETURN @description;
-END;
-
-
-/* test
-select Pizza.OrderDescription(1,1,2) as 'Total price for order 2';
-*/
-
-/*
 	OPEN Items_Cursor
 			FETCH NEXT FROM Items_Cursor INTO @itemTitle
 			WHILE @@FETCH_STATUS = 0
@@ -106,14 +74,44 @@ select Pizza.OrderDescription(1,1,2) as 'Total price for order 2';
 					FETCH NEXT FROM Menus_Cursor INTO @menuTitle
 				END;
 			CLOSE Menus_Cursor;
-*/
 
-/*
+	SET @description = 'Order description: ';
 	
-	SET @description += 'Total price: [ ' + CAST(@totalPrice AS NVARCHAR(20)) + ' ] ';
-	SET @description += 'Discount: [ ' + CAST(@discount AS NVARCHAR(5)) + ' ] ';
-	SET @description += 'Address: [ ' + @address + ' ] ';
-	SET @description += 'Payment Option: [ ' + @paymentTitle + ' ] ';
-	SET @description += 'Delivery date: [ ' + CAST(@orderDate AS NVARCHAR(20)) + ' ] ';
+	SELECT @totalPrice = TotalPrice
+						 FROM Pizza."Order"
+						 WHERE Id_Order = @orderId;
 
+	SELECT @discount = Discount
+						FROM Pizza."Order"
+						WHERE Id_Order = @orderId;
+
+	IF @discount IS NULL
+		SET @discount = 0;
+
+					   
+	SELECT @address = Street
+						FROM Pizza."Address"
+						WHERE Customer_Id = @customerId;
+	
+	SELECT @paymentTitle = PaymentType_Name
+							FROM Pizza.PaymentType
+							WHERE Id_PaymentType = @paymentTypeId;
+	
+	SELECT @orderDate = OrderDate
+						FROM Pizza."Order"
+						WHERE Id_Order = @orderId;
+
+	SET @description += 'Total price [ ' + CAST(@totalPrice AS NVARCHAR(20)) + ' ] ';
+	SET @description += 'Discount [ ' + CAST(@discount AS NVARCHAR(5)) + ' ] ';
+	SET @description += 'Address [ ' + @address + ' ] ';
+	SET @description += 'Payment Option [ ' + @paymentTitle + ' ] ';
+	SET @description += 'Delivery date [ ' + CAST(@orderDate AS NVARCHAR(20)) + ' ] ';
+
+
+	RETURN @description;
+END;
+
+
+/* test
+select Pizza.OrderDescription(1,1,2) as 'Total price for order 2';
 */

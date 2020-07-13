@@ -1,5 +1,13 @@
 CREATE SCHEMA Pizza;
 
+DROP INDEX IX_NonClustered ON Pizza.Item;
+DROP INDEX Ix_NonClustered ON Pizza.Employee;
+DROP INDEX Ix_NonClustered ON Pizza."Order";
+DROP INDEX Ix_Unique ON Pizza.Menu;
+DROP INDEX Ix_NonClustered ON Pizza.MenuItem;
+DROP INDEX Ix_Unique ON Pizza.Account;
+DROP INDEX Ix_NonClustered ON Pizza.OrderDetails;
+
 DROP TABLE Pizza.OrderHistory;
 DROP TABLE Pizza.SavedOrder;
 DROP TABLE Pizza.SavedItem;
@@ -58,7 +66,7 @@ CREATE TABLE Pizza.Customer (
   Id_Customer INT NOT NULL IDENTITY,
   FirstName NVARCHAR(100) NOT NULL,
   LastName NVARCHAR(100),
-  Phone NVARCHAR(20) NOT NULL,
+  Phone NVARCHAR(20) UNIQUE NOT NULL,
   PRIMARY KEY (Id_Customer)
 );
 
@@ -131,13 +139,13 @@ CREATE TABLE Pizza.Employee (
   FOREIGN KEY (Position_Id) REFERENCES Pizza.Position (Id_Position)
 );
 
-
 CREATE TABLE Pizza.OrderDetails (
   Id_OrderDetails INT NOT NULL IDENTITY,
   Order_Id INT NOT NULL,
   PaymentType_Id INT NOT NULL,
   OrderType_Id INT NOT NULL,
   Deliver_Id INT,
+  OrderDescription NVARCHAR(500),
   PRIMARY KEY (Id_OrderDetails),
   FOREIGN KEY (Order_Id) REFERENCES Pizza."Order" (Id_Order),
   FOREIGN KEY (PaymentType_Id) REFERENCES Pizza.PaymentType (Id_PaymentType),
