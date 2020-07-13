@@ -1,5 +1,5 @@
 /* Make a new order */
-ALTER PROCEDURE Pizza.NewItemOrder
+CREATE PROCEDURE Pizza.NewItemOrder
 	(
 		@customerId INT,
 		@itemId INT = 0,
@@ -10,7 +10,7 @@ ALTER PROCEDURE Pizza.NewItemOrder
 	)
 AS
 	BEGIN
-		
+
 		DECLARE @orderId INT;
 
 		IF NOT EXISTS (SELECT Id_Customer FROM Pizza.Customer WHERE Id_Customer = @customerId)
@@ -36,7 +36,9 @@ AS
 
 		INSERT INTO Pizza."Order" (Customer_Id) VALUES (@customerId);
 		SET @orderId = @@IDENTITY;
-		
+		PRINT @itemId;
+		PRINT @orderId;
+		PRINT @quantity;
 		INSERT INTO Pizza.OrderItem (Item_Id, Order_Id, Quantity)
 		VALUES (@itemId, @orderId, @quantity);
 			
@@ -50,6 +52,29 @@ EXECUTE Pizza.NewItemOrder 50, 25, 44, 1, 1, 1;
 */
 
 
+/* Add item to existing order */
+
+CREATE PROCEDURE Pizza.AddMenuToOrder
+	(
+		@orderId INT,
+		@menuId INT,
+		@quantity INT
+	)
+AS
+	BEGIN
+		IF NOT EXISTS (SELECT Id_Order FROM Pizza."Order" WHERE Id_Order = @orderId)
+			RAISERROR ('There is no order with given id!', 14, 4);
+		IF NOT EXISTS (SELECT Id_Menu FROM Pizza.Menu WHERE Id_Menu = @menuId)
+			RAISERROR ('There is no item with given id!', 14, 4);
+
+		INSERT INTO Pizza.OrderItem (Order_Id, Menu_Id, Quantity)
+		VALUES (@orderId, @menuId, @quantity);
+
+		PRINT 'New menu was added to order: ' + CAST(@orderId AS NVARCHAR(20));
+END;
+
+EXECUTE Pizza.AddMenuToOrder 15, 2, 4;
+select * from Pizza.OrderItem where order_id = 15;
 /* Add new customer */
 
 CREATE PROCEDURE Pizza.NewCustomer

@@ -7,13 +7,13 @@ AS
 BEGIN
 	DECLARE @sum SMALLMONEY = 0;
 	
-	IF EXISTS (SELECT Item_Id FROM Pizza.OrderItem WHERE Item_Id = @orderId)
+	IF EXISTS (SELECT Item_Id FROM Pizza.OrderItem WHERE Item_Id = @orderId AND Item_Id IS NOT NULL)
 		SELECT @sum = SUM(ItemPrice)
 		FROM Pizza.Item
  		INNER JOIN Pizza.OrderItem ON Item_Id = Id_Item
 		WHERE Order_Id = @orderId;
 
-	IF EXISTS (SELECT Menu_Id FROM Pizza.OrderItem WHERE Order_Id = @orderId)
+	IF EXISTS (SELECT Menu_Id FROM Pizza.OrderItem WHERE Order_Id = @orderId AND Menu_Id IS NOT NULL)
 		SELECT @sum += SUM(MenuPrice)
 		FROM Pizza.Menu
 		INNER JOIN Pizza.OrderItem ON Menu_Id = Id_Menu
@@ -22,8 +22,7 @@ BEGIN
 	RETURN @sum;
 END;
 
-select * from Pizza.OrderItem where order_id = 20;
-select * from Pizza.OrderItem where order_id = 33;
+
 /* test
 select Pizza.calculateTotal(20) as 'Total price for order 2';
 */
@@ -81,28 +80,28 @@ BEGIN
 	SET @description = 'Order description: ';
 	
 	SELECT @totalPrice = TotalPrice
-						 FROM Pizza."Order"
-						 WHERE Id_Order = @orderId;
+	FROM Pizza."Order"
+	WHERE Id_Order = @orderId;
 
 	SELECT @discount = Discount
-						FROM Pizza."Order"
-						WHERE Id_Order = @orderId;
+	FROM Pizza."Order"
+	WHERE Id_Order = @orderId;
 
 	IF @discount IS NULL
 		SET @discount = 0;
 
 					   
 	SELECT @address = Street
-						FROM Pizza."Address"
-						WHERE Customer_Id = @customerId;
+	FROM Pizza."Address"
+	WHERE Customer_Id = @customerId;
 	
 	SELECT @paymentTitle = PaymentType_Name
-							FROM Pizza.PaymentType
-							WHERE Id_PaymentType = @paymentTypeId;
+	FROM Pizza.PaymentType
+	WHERE Id_PaymentType = @paymentTypeId;
 	
 	SELECT @orderDate = OrderDate
-						FROM Pizza."Order"
-						WHERE Id_Order = @orderId;
+	FROM Pizza."Order"
+	WHERE Id_Order = @orderId;
 
 	SET @description += 'Total price [ ' + CAST(@totalPrice AS NVARCHAR(20)) + ' ] ';
 	SET @description += 'Discount [ ' + CAST(@discount AS NVARCHAR(5)) + ' ] ';
