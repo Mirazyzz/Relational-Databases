@@ -87,7 +87,7 @@ BEGIN
 	FROM Pizza."Order"
 	WHERE Id_Order = @orderId;
 
-	IF @discount IS NULL
+	IF @discount IS NULL	-- in case of null whol text will be converted to null
 		SET @discount = 0;
 
 					   
@@ -102,6 +102,8 @@ BEGIN
 	SELECT @orderDate = OrderDate
 	FROM Pizza."Order"
 	WHERE Id_Order = @orderId;
+
+	-- add all values to the description --
 
 	SET @description += 'Total price [ ' + CAST(@totalPrice AS NVARCHAR(20)) + ' ] ';
 	SET @description += 'Discount [ ' + CAST(@discount AS NVARCHAR(5)) + ' ] ';
