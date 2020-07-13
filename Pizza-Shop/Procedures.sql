@@ -11,8 +11,9 @@ CREATE PROCEDURE Pizza.NewItemOrder
 AS
 	BEGIN
 
-		DECLARE @orderId INT;
+		DECLARE @orderId INT; -- to pass to new order details, @@identity won't be valid
 
+		/* check if passed values are valid */
 		IF NOT EXISTS (SELECT Id_Customer FROM Pizza.Customer WHERE Id_Customer = @customerId)
 			BEGIN
 				RAISERROR('There is no customer with given id!', 16, 0);
@@ -34,16 +35,22 @@ AS
 				RETURN;
 			END;
 
+		/*make a new order */
 		INSERT INTO Pizza."Order" (Customer_Id) VALUES (@customerId);
-		SET @orderId = @@IDENTITY;
-		PRINT @itemId;
-		PRINT @orderId;
-		PRINT @quantity;
+		SET @orderId = @@IDENTITY; --> this will call a trigger which will add this order to history of the customer
+
+		/* add item to the new order */
 		INSERT INTO Pizza.OrderItem (Item_Id, Order_Id, Quantity)
-		VALUES (@itemId, @orderId, @quantity);
+		VALUES (@itemId, @orderId, @quantity); --> this will call trigger which will call function to calculate 
+											   --  total price of the items for the given order amd discount
 			
+		/* make new order details for the new order */
 		INSERT INTO Pizza.OrderDetails (Order_Id, PaymentType_Id, OrderType_Id, Deliver_Id)
-		VALUES (@orderId, @paymentTypeId, @orderTypeId, @deliver_Id);
+		VALUES (@orderId, @paymentTypeId, @orderTypeId, @deliver_Id); --> this will call trigger which will call function 
+																	  --  that return description of the order and updates
+																	  --  order details table, then another trigger
+																	  --  which will calculate number of orders for the 
+																	  --  current month of a deliverer if any assigned to order
 END;
 
 /* test
@@ -63,9 +70,15 @@ CREATE PROCEDURE Pizza.AddMenuToOrder
 AS
 	BEGIN
 		IF NOT EXISTS (SELECT Id_Order FROM Pizza."Order" WHERE Id_Order = @orderId)
-			RAISERROR ('There is no order with given id!', 14, 4);
+			BEGIN				
+				RAISERROR ('There is no order with given id!', 14, 4);
+				RETURN;
+			END;
 		IF NOT EXISTS (SELECT Id_Menu FROM Pizza.Menu WHERE Id_Menu = @menuId)
-			RAISERROR ('There is no item with given id!', 14, 4);
+			BEGIN
+				RAISERROR ('There is no item with given id!', 14, 4);
+				RETURN;
+			END;
 
 		INSERT INTO Pizza.OrderItem (Order_Id, Menu_Id, Quantity)
 		VALUES (@orderId, @menuId, @quantity);
@@ -73,8 +86,12 @@ AS
 		PRINT 'New menu was added to order: ' + CAST(@orderId AS NVARCHAR(20));
 END;
 
+/* test
 EXECUTE Pizza.AddMenuToOrder 15, 2, 4;
+EXECUTE Pizza.AddMenuToOrder 15, 50, 12; -- wit error
 select * from Pizza.OrderItem where order_id = 15;
+*/
+
 /* Add new customer */
 
 CREATE PROCEDURE Pizza.NewCustomer
@@ -93,16 +110,19 @@ CREATE PROCEDURE Pizza.NewCustomer
 AS
 	BEGIN
 		
-		DECLARE @customerId INT;
+		DECLARE @customerId INT;	-- to pass to newly made address, @@identity won't be valid -> account
 
+		/* Add a new customer */
 		INSERT INTO Pizza.Customer (FirstName, LastName, Phone)
 		VALUES (@firstName, @lastName, @phone);
 
 		SET @customerId = @@IDENTITY;
 
+		/* make new account for the given customer */
 		INSERT INTO Pizza.Account (Customer_Id, CreditCard, Email, Password)
 		VALUES (@customerId, @creditCard, @email, @password);
 
+		/* add new address to the given customer */
 		INSERT INTO Pizza."Address" (Customer_Id, Street, Appartment, Pincode, Flat)
 		VALUES (@customerId, @street, @appartment, @pincode, @flat);
 
@@ -210,4 +230,31 @@ AS
 
 		INSERT INTO Pizza.MenuItem (Item_Id, Menu_id)
 		VALUES (@itemId, @menuId);
+END;
+
+
+/* Assign delivered to an order */
+
+CREATE PROCEDURE Pizza.AssignDeliverer
+	(
+		@deliverId INT,
+		@orderId INT
+	)
+AS
+	BEGIN
+		
+		IF NOT EXISTS (SELECT Id_Employee FROM Pizza.Employee WHERE Id_Employee = @deliverId)
+			BEGIN
+				RAISERROR ('There is not such a deliverer with a given id!', 14, 2);
+				RETURN;
+			END;
+		IF NOT EXISTS (SELECT Order_Id FROM Pizza.OrderDetails WHERE Order_Id = @orderId)
+			BEGIN
+				RAISERROR ('There is no assigned order by given id!', 14, 2);
+				RETURN
+			END;
+
+		UPDATE Pizza.OrderDetails 
+		SET Deliver_Id = @deliverId 
+		WHERE Order_Id = @orderId;
 END;

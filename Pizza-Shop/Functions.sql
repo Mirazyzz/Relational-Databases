@@ -109,7 +109,6 @@ BEGIN
 	SET @description += 'Payment Option [ ' + @paymentTitle + ' ] ';
 	SET @description += 'Delivery date [ ' + CAST(@orderDate AS NVARCHAR(20)) + ' ] ';
 
-
 	RETURN @description;
 END;
 
