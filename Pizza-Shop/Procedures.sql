@@ -101,21 +101,90 @@ CREATE PROCEDURE ChangeSalary
 	(
 		@position NVARCHAR(50),
 		@newSalary MONEY OUTPUT,
+		@changedTo MONEY OUTPUT,
 		@percent INT = 20
 	)
 AS
 	BEGIN
-		IF @percent > 0
-			SELECT @newSalary = Salary + Salary * @percent / 100
+		
+			SELECT @changedTo = Salary * @percent / 100
 			FROM Pizza.Position
-			WHERE Position_Title = @position;
-		ELSE
+			where Position_Title = @position;
+
 			SELECT @newSalary = Salary + Salary * @percent / 100
 			FROM Pizza.Position
 			WHERE Position_Title = @position;
 
+		UPDATE Pizza.Position
+		SET Salary = @newSalary
+		WHERE Position_Title = @position;
 END;
 
+/* test
 DECLARE @newSalary MONEY;
-EXECUTE ChangeSalary 'Accountant', @newSalary OUTPUT, -70;
+DECLARE @changedTo MONEY;
+EXECUTE ChangeSalary 'Accountant', @newSalary OUTPUT, @changedTo OUTPUT, -10;
 PRINT @newSalary;
+PRINT @changedTo;
+*/
+
+
+CREATE PROCEDURE AddNewMenu
+	(
+		@menuTitle NVARCHAR(150),
+		@menuPrice SMALLMONEY
+	)
+AS
+	BEGIN
+		
+		IF EXISTS (SELECT Id_Menu
+					FROM Pizza.Menu
+					WHERE MenuTitle = @menuTitle)
+			BEGIN
+				RAISERROR ('There is already such a menu with given title, please choose another name', 14, 1);
+				RETURN;
+			END;
+		ELSE
+			INSERT INTO Pizza.Menu (MenuTitle, MenuPrice)
+			VALUES (@menuTitle, @menuPrice);
+
+		PRINT 'New menu' + @menuTitle + ' was added';
+END;
+
+/*
+EXECUTE AddNewMenu 'NewMenu', 50;
+EXECUTE AddNewMenu 'NewMenu', 50; -- EXCEPTION
+*/
+
+CREATE PROCEDURE AddItemToMenu
+	(
+		@menuTitle NVARCHAR(150),
+		@itemTitle NVARCHAR(150)
+	)
+AS
+	BEGIN
+		
+		DECLARE @menuId INT;
+		DECLARE @itemId INT;
+
+		IF NOT EXISTS (SELECT Id_item
+						FROM Pizza.Item
+						WHERE ItemTitle = @itemTitle)
+			BEGIN
+				RAISERROR('There is no such an item with given title!', 14, 1);
+				RETURN;
+			END;
+		IF NOT EXISTS (SELECT Id_Menu
+						FROM Pizza.Menu
+						WHERE MenuTitle = @menuTitle)
+			BEGIN
+				RAISERROR('There is no such a menu with given title', 14, 1);
+				RETURN
+			END;
+
+		SELECT @itemId = Id_Item FROM Pizza.Item WHERE ItemTitle = @itemTitle;
+		SELECT @menuId = Id_Menu FROM Pizza.Menu WHERE MenuTitle = @menuTitle;
+
+		INSERT INTO Pizza.MenuItem (Item_Id, Menu_id)
+		VALUES (@itemId, @menuId);
+END;

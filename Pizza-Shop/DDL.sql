@@ -119,6 +119,7 @@ CREATE TABLE Pizza.OrderType (
   PRIMARY KEY (Id_OrderType)
 );
 
+
 CREATE TABLE Pizza.Position (
   Id_Position INT NOT NULL IDENTITY,
   Position_Title NVARCHAR(50) NOT NULL,
