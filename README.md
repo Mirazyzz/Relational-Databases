@@ -23,7 +23,7 @@ Contains:
 4 triggers,
 12 queries
 
-### Dvd-Rental
+### Dvd-Rental (PG-SQL)
 15 tables (dynamically growing tables),
 2 trigger,
 7 views,
