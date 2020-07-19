@@ -31,6 +31,10 @@ Contains:
 Query optimization,
 Database optimization
 
+### Employee-Management (PL-SQL)
+3 tables,
+5 tasks containing ~15 query tasks with solutions
+
 
 ## Getting started
 To get started with projects first, run DDL scripts and then DML scripts to fill up tables with some data. It is recommended to apply functions first, because some of the triggers and stored procedures are depended on some particular functions, then stored procedures, then triggers.
